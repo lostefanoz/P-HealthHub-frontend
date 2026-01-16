@@ -1,66 +1,66 @@
 # PrivilegedHealthHub Frontend
 
-## Overview
-Single page application for PrivilegedHealthHub. Built with React and Vite, it consumes the backend REST API under `/api/v1` and uses HttpOnly cookies for authentication.
+## Panoramica
+Single page application per PrivilegedHealthHub. Costruita con React e Vite, consuma la REST API del backend sotto `/api/v1` e usa cookie HttpOnly per l'autenticazione.
 
-## Tech stack
+## Stack tecnico
 - React 18
 - Vite 7
 - React Router
 - React Query
-- MUI and Bootstrap
+- MUI e Bootstrap
 
-## Requirements
-- Node 18+ and npm
+## Requisiti
+- Node 18+ e npm
 
-## Configuration
-The API base URL is configured via `VITE_API_URL`. If not set, the app defaults to:
+## Configurazione
+La base URL della API si imposta con `VITE_API_URL`. Se non configurata, il valore predefinito e:
 `http://<current-host>:8000/api/v1`
 
-Example `.env`:
+Esempio `.env`:
 ```
 VITE_API_URL=http://127.0.0.1:8000/api/v1
 ```
 
-## Development
+## Sviluppo
 ```powershell
 cd D:\P-HealthHub\frontend
 npm install
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173`. Ensure the backend is running on port 8000.
+Apri `http://127.0.0.1:5173`. Assicurati che il backend sia in esecuzione sulla porta 8000.
 
-## Production
-Build the frontend:
+## Produzione
+Compila il frontend:
 ```powershell
 cd D:\P-HealthHub\frontend
 npm run build
 ```
 
-Output is generated in `dist/`.
+L'output viene generato in `dist/`.
 
-Deployment options:
-- Serve `dist/` from a static web server (nginx, S3, etc) and set `VITE_API_URL` to the API base URL.
-- If the backend repo is a sibling and you want a single server, the backend will serve `../frontend/dist` automatically when present.
+Opzioni di deploy:
+- Servi `dist/` con un web server statico (nginx, S3, ecc) e imposta `VITE_API_URL` con la base URL della API.
+- Se il backend e un progetto sibling e vuoi un solo server, il backend serve automaticamente `../frontend/dist` quando presente.
 
-## Scripts
-- `npm run dev`: start Vite dev server
-- `npm run build`: production build
-- `npm run preview`: local preview of the build
+## Script
+- `npm run dev`: avvia il dev server Vite
+- `npm run build`: build di produzione
+- `npm run preview`: preview locale della build
 
-## API integration
-- Axios client uses `withCredentials: true` to send cookies.
-- Authentication uses HttpOnly cookies set by the backend.
-- In production, use HTTPS and configure backend CORS accordingly.
+## Integrazione API
+- Il client Axios usa `withCredentials: true` per inviare i cookie.
+- L'autenticazione usa cookie HttpOnly impostati dal backend.
+- In produzione, usa HTTPS e configura il CORS del backend.
 
-## Testing
-No automated frontend tests are configured in this repository.
+## Test
+Non sono configurati test automatici frontend in questo repository.
 
-## Troubleshooting
-- CORS errors: update backend `CORS_ALLOW_ORIGINS` and confirm the frontend origin.
-- 401 responses: verify login flow and cookie settings.
-- Wrong API target: set `VITE_API_URL` and rebuild.
+## Risoluzione problemi
+- Errori CORS: aggiorna `CORS_ALLOW_ORIGINS` nel backend e verifica l'origine del frontend.
+- Risposte 401: verifica il flusso di login e le impostazioni dei cookie.
+- Target API errato: imposta `VITE_API_URL` e ricompila.
 
-## License
-All rights reserved.
+## Licenza
+Tutti i diritti riservati.
