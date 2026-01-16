@@ -28,9 +28,9 @@ export default function LandingPage() {
             </div>
             <div className="landing-hero-card animate-rise" style={{ '--delay': '360ms' } as CSSProperties}>
               <ul className="landing-card-list">
-                <li>Notifiche mirate e tempi chiari</li>
+                <li>Notifiche smart</li>
                 <li>Documenti pronti in pochi passaggi</li>
-                <li>Supporto sempre visibile</li>
+                <li>Supporto h24 7 giorni su 7</li>
               </ul>
             </div>
           </div>

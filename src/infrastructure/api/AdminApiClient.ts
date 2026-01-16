@@ -5,6 +5,8 @@ export type AdminSpecialtyDto = { id: number; name: string }
 export type AdminDoctorDto = { id: number; email: string; first_name: string; last_name: string; specialties: AdminSpecialtyDto[] }
 export type AccessLogDto = { id: number; email: string; timestamp: string; action?: string; reason?: string | null }
 export type PagedResult<T> = { items: T[]; total: number }
+export type AdminUserCreate = { email: string; password: string; first_name: string; last_name: string; roles: string[]; is_active?: boolean }
+export type AdminUserCreateResult = { id: number; email: string; roles: string[]; is_active: boolean }
 
 function readTotal(res: any): number {
   const raw = res.headers?.['x-total-count']
@@ -16,6 +18,11 @@ export class AdminApiClient {
   async listUsers(params?: { q?: string; role?: string; active?: boolean; limit?: number; offset?: number; created_from?: string; created_to?: string }): Promise<PagedResult<AdminUserDto>> {
     const res = await http.get('/admin/users', { params })
     return { items: res.data as AdminUserDto[], total: readTotal(res) }
+  }
+
+  async createUser(data: AdminUserCreate) {
+    const res = await http.post('/admin/users', data)
+    return res.data as AdminUserCreateResult
   }
 
   async updateUserRoles(userId: number, roles: string[]) {

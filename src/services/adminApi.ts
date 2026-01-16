@@ -1,5 +1,5 @@
 import { AdminService } from '../application/services/AdminService'
-import type { AdminDoctorDto, AdminSpecialtyDto, AdminUserDto, AccessLogDto, PagedResult } from '../infrastructure/api/AdminApiClient'
+import type { AdminDoctorDto, AdminSpecialtyDto, AdminUserDto, AccessLogDto, PagedResult, AdminUserCreate, AdminUserCreateResult } from '../infrastructure/api/AdminApiClient'
 
 const adminService = new AdminService()
 
@@ -11,6 +11,10 @@ export type { PagedResult }
 
 export async function listUsers(params?: { q?: string; role?: string; active?: boolean; limit?: number; offset?: number; created_from?: string; created_to?: string }) {
   return adminService.listUsers(params)
+}
+
+export async function adminCreateUser(data: AdminUserCreate): Promise<AdminUserCreateResult> {
+  return adminService.createUser(data)
 }
 
 export async function updateUserRoles(userId: number, roles: string[]) {

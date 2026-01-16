@@ -1,10 +1,14 @@
-import { AdminApiClient, AdminDoctorDto, AdminSpecialtyDto, AdminUserDto, AccessLogDto, PagedResult } from '../../infrastructure/api/AdminApiClient'
+import { AdminApiClient, AdminDoctorDto, AdminSpecialtyDto, AdminUserDto, AccessLogDto, PagedResult, AdminUserCreate, AdminUserCreateResult } from '../../infrastructure/api/AdminApiClient'
 
 export class AdminService {
   constructor(private client: AdminApiClient = new AdminApiClient()) {}
 
   listUsers(params?: { q?: string; role?: string; active?: boolean; limit?: number; offset?: number; created_from?: string; created_to?: string }): Promise<PagedResult<AdminUserDto>> {
     return this.client.listUsers(params)
+  }
+
+  createUser(data: AdminUserCreate): Promise<AdminUserCreateResult> {
+    return this.client.createUser(data)
   }
 
   updateUserRoles(userId: number, roles: string[]) {

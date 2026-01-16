@@ -1,14 +1,14 @@
-import { useEffect, useId, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useId, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { listUsers, updateUserRoles, updateUserStatus, adminResetUserPassword, adminDeleteUser, AdminUser } from '../services/adminApi'
+import { listUsers, updateUserRoles, updateUserStatus, adminResetUserPassword, adminDeleteUser, adminCreateUser, AdminUser } from '../services/adminApi'
 import { http } from '../services/http'
 import ConfirmModal from '../components/ConfirmModal'
 import AnchoredPopover from '../components/AnchoredPopover'
 import FormSelect from '../components/FormSelect'
 import { roleLabel } from '../utils/roles'
 import { PaginationBar } from '../components/PaginationBar'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { StateBlock } from '../components/StateBlock'
 
 const ALL_ROLES = ['Admin', 'Doctor', 'Patient', 'Secretary']
@@ -17,6 +17,7 @@ export default function AdminRolesPage() {
   const [searchParams] = useSearchParams()
   const { state } = useAuth()
   const meId = state.step === 'AUTH' ? state.user.id : null
+  const queryClient = useQueryClient()
   const [users, setUsers] = useState<AdminUser[]>([])
   const [q, setQ] = useState('')
   const [qInput, setQInput] = useState('')
@@ -43,6 +44,14 @@ export default function AdminRolesPage() {
     nextRoles?: string[]
     nextStatus?: boolean
   }>(null)
+  const [createEmail, setCreateEmail] = useState('')
+  const [createFirstName, setCreateFirstName] = useState('')
+  const [createLastName, setCreateLastName] = useState('')
+  const [createPassword, setCreatePassword] = useState('')
+  const [createRoles, setCreateRoles] = useState<string[]>(['Patient'])
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null)
+  const [createLoading, setCreateLoading] = useState(false)
   const [inlineError, setInlineError] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(false)
   const rolesPopoverId = useId()
@@ -210,6 +219,52 @@ export default function AdminRolesPage() {
     setConfirmEmail('')
   }, [confirmAction?.type, confirmAction?.user?.id])
 
+  function toggleCreateRole(roleName: string) {
+    setCreateRoles((prev) =>
+      prev.includes(roleName) ? prev.filter((r) => r !== roleName) : [...prev, roleName]
+    )
+  }
+
+  async function submitCreateUser(e: FormEvent) {
+    e.preventDefault()
+    setCreateError(null)
+    setCreateSuccess(null)
+    if (!createEmail || !createFirstName || !createLastName || !createPassword) {
+      setCreateError('Compila tutti i campi')
+      return
+    }
+    if (createPassword.length < 10) {
+      setCreateError('La password deve avere almeno 10 caratteri')
+      return
+    }
+    if (createRoles.length === 0) {
+      setCreateError('Seleziona almeno un ruolo')
+      return
+    }
+    setCreateLoading(true)
+    try {
+      await adminCreateUser({
+        email: createEmail,
+        password: createPassword,
+        first_name: createFirstName,
+        last_name: createLastName,
+        roles: createRoles,
+      })
+      setCreateSuccess('Utente creato')
+      setCreateEmail('')
+      setCreateFirstName('')
+      setCreateLastName('')
+      setCreatePassword('')
+      setCreateRoles(['Patient'])
+      setPage(1)
+      await queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    } catch (e: any) {
+      setCreateError(e?.response?.data?.detail || 'Creazione utente non riuscita')
+    } finally {
+      setCreateLoading(false)
+    }
+  }
+
   async function runConfirmedAction() {
     const action = confirmAction
     if (!action) return
@@ -265,7 +320,85 @@ export default function AdminRolesPage() {
   }
 
   return (
-    <div className="ds-card ds-card-body">
+    <div className="d-flex flex-column" style={{ gap: 16 }}>
+      <div className="ds-card ds-card-body">
+        <div className="d-flex" style={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <div className="d-flex flex-column" style={{ gap: 2 }}>
+            <h2 style={{ margin: 0 }}>Crea utente</h2>
+            <div className="label">Solo l'admin puo creare account per ruoli diversi dal Paziente.</div>
+          </div>
+        </div>
+        <form className="d-flex flex-column" style={{ gap: 12, marginTop: 12 }} onSubmit={submitCreateUser}>
+          <div className="d-flex" style={{ gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 220 }}>
+              <div className="label">Email</div>
+              <input
+                className="ds-input"
+                type="email"
+                value={createEmail}
+                onChange={(e) => setCreateEmail(e.target.value)}
+                placeholder="email@esempio.com"
+                required
+              />
+            </div>
+            <div style={{ minWidth: 200 }}>
+              <div className="label">Nome</div>
+              <input
+                className="ds-input"
+                value={createFirstName}
+                onChange={(e) => setCreateFirstName(e.target.value)}
+                placeholder="Nome"
+                required
+              />
+            </div>
+            <div style={{ minWidth: 200 }}>
+              <div className="label">Cognome</div>
+              <input
+                className="ds-input"
+                value={createLastName}
+                onChange={(e) => setCreateLastName(e.target.value)}
+                placeholder="Cognome"
+                required
+              />
+            </div>
+            <div style={{ minWidth: 220 }}>
+              <div className="label">Password</div>
+              <input
+                className="ds-input"
+                type="password"
+                value={createPassword}
+                onChange={(e) => setCreatePassword(e.target.value)}
+                placeholder="Password"
+                required
+              />
+            </div>
+          </div>
+          <div className="d-flex flex-column" style={{ gap: 6 }}>
+            <div className="label">Ruoli</div>
+            <div className="d-flex" style={{ gap: 12, flexWrap: 'wrap' }}>
+              {ALL_ROLES.map((r) => (
+                <label key={r} className="d-flex" style={{ gap: 6, alignItems: 'center' }}>
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={createRoles.includes(r)}
+                    onChange={() => toggleCreateRole(r)}
+                  />
+                  <span>{roleLabel(r)}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          {createError && <div className="alert alert-danger">{createError}</div>}
+          {createSuccess && <div className="alert alert-success">{createSuccess}</div>}
+          <div className="d-flex" style={{ justifyContent: 'flex-end' }}>
+            <button className="ds-btn ds-btn-primary" type="submit" disabled={createLoading}>
+              {createLoading ? 'Creo...' : 'Crea utente'}
+            </button>
+          </div>
+        </form>
+      </div>
+      <div className="ds-card ds-card-body">
       <div className="d-flex" style={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div className="d-flex flex-column" style={{ gap: 2 }}>
           <h2 style={{ margin: 0 }}>Ruoli</h2>
@@ -722,6 +855,7 @@ export default function AdminRolesPage() {
         </>
       )}
     </div>
+  </div>
   )
 }
 
