@@ -14,7 +14,7 @@ Single page application per PrivilegedHealthHub. Costruita con React e Vite, con
 - Node 18+ e npm
 
 ## Configurazione
-La base URL della API si imposta con `VITE_API_URL`. Se non configurata, il valore predefinito e:
+La base URL della API si imposta con `VITE_API_URL`. Se non configurata, il valore predefinito &egrave;:
 `http://<current-host>:8000/api/v1`
 
 Esempio `.env`:
@@ -42,7 +42,7 @@ L'output viene generato in `dist/`.
 
 Opzioni di deploy:
 - Servi `dist/` con un web server statico (nginx, S3, ecc) e imposta `VITE_API_URL` con la base URL della API.
-- Se il backend e un progetto sibling e vuoi un solo server, il backend serve automaticamente `../frontend/dist` quando presente.
+- Se il backend &egrave; un progetto sibling e vuoi un solo server, il backend serve automaticamente `../frontend/dist` quando presente. In questo caso usa `VITE_API_URL=/api/v1` e ricompila la build.
 
 ## Script
 - `npm run dev`: avvia il dev server Vite

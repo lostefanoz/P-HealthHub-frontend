@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login as apiLogin, verifyOtp, me as apiMe, logout as apiLogout } from '../services/authApi'
+import { login as apiLogin, me as apiMe, logout as apiLogout } from '../services/authApi'
 import { http } from '../services/http'
 
 type User = { id: number; email: string; first_name: string; last_name: string; roles: string[] }
@@ -8,13 +8,11 @@ type User = { id: number; email: string; first_name: string; last_name: string; 
 type AuthState =
   | { step: 'INIT' }
   | { step: 'ANON' }
-  | { step: 'MFA'; email: string; methods: Array<{ type: 'totp' | 'email'; label: string }> }
   | { step: 'AUTH'; token: string; user: User }
 
 type AuthContextType = {
   state: AuthState
   doLogin: (email: string, password: string) => Promise<void>
-  doVerify: (email: string, code: string, method?: 'totp' | 'email') => Promise<void>
   logout: () => void
 }
 
@@ -30,14 +28,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function doLogin(email: string, password: string) {
     const { data } = await apiLogin({ email, password })
-    if (data?.mfa_required) {
-      const methods = (data?.methods as Array<{ type: 'totp' | 'email'; label: string }>) || [
-        { type: 'totp', label: 'Authenticator App (TOTP)' },
-      ]
-      setState({ step: 'MFA', email, methods })
-      navigate('/mfa')
-      return
-    }
     if (data?.user) {
       const user = data.user as User
       setState({ step: 'AUTH', token: 'cookie', user })
@@ -45,13 +35,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return
     }
     throw new Error('Risposta login inattesa')
-  }
-
-  async function doVerify(email: string, code: string, method?: 'totp' | 'email') {
-    const data = await verifyOtp({ email, code, method })
-    const user = data.user as User
-    setState({ step: 'AUTH', token: 'cookie', user })
-    navigate('/app')
   }
 
   async function logout() {
@@ -68,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (err) => {
         const status = err?.response?.status
         const url = (err?.config?.url as string | undefined) ?? ''
-        const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/mfa/')
+        const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register')
         const curr = stateRef.current
         if (status === 401 && curr.step === 'AUTH' && !isAuthEndpoint) {
           logout()
@@ -99,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const value = useMemo(() => ({ state, doLogin, doVerify, logout }), [state])
+  const value = useMemo(() => ({ state, doLogin, logout }), [state])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

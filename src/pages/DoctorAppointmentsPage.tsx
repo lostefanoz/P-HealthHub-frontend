@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { listAppointments, notifyAppointment, updateAppointmentStatus, AppointmentDto } from '../services/appointmentsApi'
+import { listAppointments, updateAppointmentStatus, AppointmentDto } from '../services/appointmentsApi'
 import { useAuth } from '../auth/AuthContext'
 import ConfirmModal from '../components/ConfirmModal'
 import { statusLabel } from '../utils/status'
@@ -7,7 +7,7 @@ import { PaginationBar } from '../components/PaginationBar'
 import { useQuery } from '@tanstack/react-query'
 import { StateBlock } from '../components/StateBlock'
 import FormSelect from '../components/FormSelect'
-import { IconCheck, IconMail, IconMessage, IconXCircle } from '../components/Icon'
+import { IconCheck, IconXCircle } from '../components/Icon'
 
 type DoctorAppt = AppointmentDto
 
@@ -20,7 +20,6 @@ export default function DoctorAppointmentsPage() {
   const [cancelLoading, setCancelLoading] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
   const [pendingStatus, setPendingStatus] = useState<null | { id: number; status: 'Confirmed' | 'Rejected' }>(null)
-  const [pendingReminder, setPendingReminder] = useState<null | { id: number; channel: 'email' | 'sms' }>(null)
   const [rejectTarget, setRejectTarget] = useState<null | { id: number }>(null)
   const [rejectNote, setRejectNote] = useState('')
   const [page, setPage] = useState(1)
@@ -63,19 +62,12 @@ export default function DoctorAppointmentsPage() {
     setPendingStatus({ id, status })
   }
 
-  async function sendReminder(id: number, channel: 'email' | 'sms') {
-    setPendingReminder({ id, channel })
-  }
-
-  async function confirmCancel(kind: 'none' | 'email' | 'sms') {
+  async function confirmCancel() {
     if (!cancelTarget) return
     setCancelLoading(true)
     setCancelError(null)
     try {
       await updateAppointmentStatus(cancelTarget.id, 'Cancelled')
-      if (kind === 'email' || kind === 'sms') {
-        await notifyAppointment(cancelTarget.id, kind, 'cancellation')
-      }
       await apptsQuery.refetch()
       setCancelTarget(null)
     } catch (e: any) {
@@ -231,36 +223,6 @@ export default function DoctorAppointmentsPage() {
                     {a.status === 'Confirmed' && (
                       <>
                         <button
-                          className="ds-btn ds-btn-ghost ds-btn-sm"
-                          type="button"
-                          disabled={loading}
-                          onClick={() => sendReminder(a.id, 'email')}
-                          aria-label="Promemoria email"
-                          title="Promemoria email"
-                        >
-                          <span className="btn-icon" aria-hidden="true">
-                            <IconMail size={18} />
-                          </span>
-                          <span className="sr-only">Promemoria email</span>
-                        </button>
-                        <button
-                          className="ds-btn ds-btn-ghost ds-btn-sm"
-                          type="button"
-                          disabled={loading}
-                          onClick={() => sendReminder(a.id, 'sms')}
-                          aria-label="Promemoria SMS"
-                          title="Promemoria SMS"
-                        >
-                          <span className="btn-icon" aria-hidden="true">
-                            <IconMessage size={18} />
-                          </span>
-                          <span className="sr-only">Promemoria SMS</span>
-                        </button>
-                      </>
-                    )}
-                    {a.status === 'Confirmed' && (
-                      <>
-                        <button
                           className="ds-btn ds-btn-danger ds-btn-sm"
                           type="button"
                           disabled={loading}
@@ -299,7 +261,6 @@ export default function DoctorAppointmentsPage() {
               del {new Date(cancelTarget.scheduled_at).toLocaleString('it-IT', { timeZone: 'Europe/Rome', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}?
             </div>
             <div className="spacer"></div>
-            <div className="label">Scegli se inviare una notifica al paziente:</div>
             {cancelError && <div style={{ color: '#dc2626' }}>{cancelError}</div>}
             <div className="d-flex modal-actions">
               <button
@@ -311,28 +272,12 @@ export default function DoctorAppointmentsPage() {
                 Chiudi
               </button>
               <button
-                className="ds-btn ds-btn-ghost"
-                type="button"
-                disabled={cancelLoading}
-                onClick={() => confirmCancel('none')}
-              >
-                Solo annulla
-              </button>
-              <button
-                className="ds-btn ds-btn-ghost"
-                type="button"
-                disabled={cancelLoading}
-                onClick={() => confirmCancel('email')}
-              >
-                Annulla e invia email
-              </button>
-              <button
                 className="ds-btn ds-btn-danger"
                 type="button"
                 disabled={cancelLoading}
-                onClick={() => confirmCancel('sms')}
+                onClick={() => confirmCancel()}
               >
-                Annulla e invia SMS
+                Annulla appuntamento
               </button>
             </div>
           </div>
@@ -405,27 +350,6 @@ export default function DoctorAppointmentsPage() {
             />
           </label>
         </ConfirmModal>
-      )}
-      {pendingReminder && (
-        <ConfirmModal
-          title="Conferma invio promemoria"
-          message={`Inviare un promemoria via ${pendingReminder.channel === 'email' ? 'email' : 'SMS'} al paziente?`}
-          confirmLabel="Invia"
-          cancelLabel="Annulla"
-          onCancel={() => setPendingReminder(null)}
-          onConfirm={async () => {
-            setLoading(true)
-            setError(null)
-            try {
-              await notifyAppointment(pendingReminder.id, pendingReminder.channel, 'reminder')
-            } catch (e: any) {
-              setError(e?.response?.data?.detail || 'Errore invio promemoria')
-            } finally {
-              setLoading(false)
-              setPendingReminder(null)
-            }
-          }}
-        />
       )}
       {rejectNoteMessage && (
         <ConfirmModal

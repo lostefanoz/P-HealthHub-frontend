@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthContext'
 
@@ -11,15 +11,12 @@ import ThemeToggleButton from '../components/ThemeToggleButton'
 import Clock from '../components/Clock'
 
 import ConfirmModal from '../components/ConfirmModal'
-import { getMfaStatus } from '../services/authApi'
 
 
 
 export default function DashboardLayout() {
 
   const { state, logout } = useAuth()
-  const navigate = useNavigate()
-
   const user = state.step === 'AUTH' ? state.user : null
 
   const isAuthenticated = !!user
@@ -60,49 +57,8 @@ export default function DashboardLayout() {
   const [loginCountryCode, setLoginCountryCode] = useState<string | null>(null)
 
   const [countryLoading, setCountryLoading] = useState(true)
-  const [showMfaPrompt, setShowMfaPrompt] = useState(false)
 
   const flagCode = loginCountryCode ? loginCountryCode.toLowerCase() : null
-
-  useEffect(() => {
-
-    let active = true
-
-    if (!user) return () => { active = false }
-
-    const storageKey = `mfaPromptSeen:${user.id}`
-
-    try {
-
-      if (localStorage.getItem(storageKey) === '1') return () => { active = false }
-
-    } catch {}
-
-    ;(async () => {
-
-      try {
-
-        const status = await getMfaStatus()
-
-        if (!active) return
-
-        if (status?.enabled === false) {
-
-          setShowMfaPrompt(true)
-
-        }
-
-      } catch {}
-
-    })()
-
-    return () => {
-
-      active = false
-
-    }
-
-  }, [user?.id])
 
   useEffect(() => {
 
@@ -515,48 +471,6 @@ export default function DashboardLayout() {
             setShowLogout(false)
 
             logout()
-
-          }}
-
-        />
-
-      )}
-
-      {showMfaPrompt && (
-
-        <ConfirmModal
-
-          title="Proteggi il tuo account"
-
-          message="Per la tua sicurezza, ti consigliamo di configurare l'MFA al primo accesso."
-
-          cancelLabel="Non ora"
-
-          confirmLabel="Configura MFA"
-
-          onCancel={() => {
-
-            try {
-
-              if (user) localStorage.setItem(`mfaPromptSeen:${user.id}`, '1')
-
-            } catch {}
-
-            setShowMfaPrompt(false)
-
-          }}
-
-          onConfirm={() => {
-
-            try {
-
-              if (user) localStorage.setItem(`mfaPromptSeen:${user.id}`, '1')
-
-            } catch {}
-
-            setShowMfaPrompt(false)
-
-            navigate('/app/account')
 
           }}
 

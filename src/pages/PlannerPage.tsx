@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { listAppointments, updateAppointmentStatus, listDoctors, Doctor, deleteAppointment, AppointmentDto, archiveAppointmentReport, notifyAppointment } from '../services/appointmentsApi'
+import { listAppointments, updateAppointmentStatus, listDoctors, Doctor, deleteAppointment, AppointmentDto, archiveAppointmentReport } from '../services/appointmentsApi'
 import ConfirmModal from '../components/ConfirmModal'
 import { statusLabel } from '../utils/status'
 import { useAuth } from '../auth/AuthContext'
 import { useQuery } from '@tanstack/react-query'
 import { StateBlock } from '../components/StateBlock'
 import { PaginationBar } from '../components/PaginationBar'
-import { IconCheck, IconXCircle, IconTrash, IconFilePlus, IconMail, IconMessage, IconChevronDown, IconChevronUp } from '../components/Icon'
+import { IconCheck, IconXCircle, IconTrash, IconFilePlus, IconChevronDown, IconChevronUp } from '../components/Icon'
 
 type Appt = AppointmentDto
 
@@ -18,7 +18,6 @@ export default function PlannerPage() {
   const [pending, setPending] = useState<null | { id: number; status: 'Confirmed' | 'Rejected' }>(null)
   const [pendingDelete, setPendingDelete] = useState<null | { id: number }>(null)
   const [pendingArchive, setPendingArchive] = useState<null | { id: number }>(null)
-  const [pendingReminder, setPendingReminder] = useState<null | { id: number; channel: 'email' | 'sms' }>(null)
   const [rejectNoteMessage, setRejectNoteMessage] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [fromDate, setFromDate] = useState('')
@@ -199,20 +198,6 @@ export default function PlannerPage() {
         {isArchived ? 'Archiviato' : isPresent ? 'Presente' : 'Assente'}
       </span>
     )
-  }
-
-  async function confirmReminder() {
-    if (!pendingReminder) return
-    setActionLoading(true)
-    setError(null)
-    try {
-      await notifyAppointment(pendingReminder.id, pendingReminder.channel, 'reminder')
-    } catch (e: any) {
-      setError(e?.response?.data?.detail || 'Errore invio promemoria')
-    } finally {
-      setActionLoading(false)
-      setPendingReminder(null)
-    }
   }
 
   if (state.step !== 'AUTH') return null
@@ -440,32 +425,6 @@ export default function PlannerPage() {
                   </td>
                   <td data-label="Azioni">
                     <div className="d-flex" style={{ gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-                      <button
-                        className="ds-btn ds-btn-ghost ds-btn-sm"
-                        type="button"
-                        onClick={() => setPendingReminder({ id: a.id, channel: 'email' })}
-                        disabled={actionLoading}
-                        aria-label="Promemoria email"
-                        title="Promemoria email"
-                      >
-                        <span className="btn-icon" aria-hidden="true">
-                          <IconMail size={18} />
-                        </span>
-                        <span className="sr-only">Promemoria email</span>
-                      </button>
-                      <button
-                        className="ds-btn ds-btn-ghost ds-btn-sm"
-                        type="button"
-                        onClick={() => setPendingReminder({ id: a.id, channel: 'sms' })}
-                        disabled={actionLoading}
-                        aria-label="Promemoria SMS"
-                        title="Promemoria SMS"
-                      >
-                        <span className="btn-icon" aria-hidden="true">
-                          <IconMessage size={18} />
-                        </span>
-                        <span className="sr-only">Promemoria SMS</span>
-                      </button>
                       <button
                         className="ds-btn ds-btn-danger ds-btn-sm"
                         type="button"
@@ -730,16 +689,6 @@ export default function PlannerPage() {
               setPendingArchive(null)
             }
           }}
-        />
-      )}
-      {pendingReminder && (
-        <ConfirmModal
-          title="Conferma invio promemoria"
-          message={`Inviare un promemoria via ${pendingReminder.channel === 'email' ? 'email' : 'SMS'} al paziente?`}
-          confirmLabel="Invia"
-          cancelLabel="Annulla"
-          onCancel={() => setPendingReminder(null)}
-          onConfirm={confirmReminder}
         />
       )}
       {rejectNoteMessage && (

@@ -11,10 +11,6 @@ export class AuthService {
     return this.client.login(data)
   }
 
-  verifyOtp(data: { email: string; code: string; method?: 'totp' | 'email' }) {
-    return this.client.verifyOtp(data)
-  }
-
   me() {
     return this.client.me()
   }
@@ -25,37 +21,5 @@ export class AuthService {
 
   changeMyPassword(data: { old_password: string; new_password: string }) {
     return this.client.changeMyPassword(data)
-  }
-
-  getMfaProvisioning() {
-    return this.client.getMfaProvisioning()
-  }
-
-  regenerateMfaSecret() {
-    return this.client.regenerateMfaSecret()
-  }
-
-  listMfaDevices() {
-    return this.client.listMfaDevices()
-  }
-
-  addMfaDevice(data: { name: string; code?: string }) {
-    return this.client.addMfaDevice(data)
-  }
-
-  deleteMfaDevice(id: number) {
-    return this.client.deleteMfaDevice(id)
-  }
-
-  getMfaStatus() {
-    return this.client.getMfaStatus()
-  }
-
-  setMfaEnabled(data: { enabled: boolean; password?: string }) {
-    return this.client.setMfaEnabled(data)
-  }
-
-  sendMfaChallenge(data: { email: string; method: 'email' }) {
-    return this.client.sendMfaChallenge(data)
   }
 }

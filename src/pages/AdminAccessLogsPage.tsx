@@ -40,8 +40,6 @@ export default function AdminAccessLogsPage() {
     bad_password: 'Password errata',
     inactive: 'Account disabilitato',
     locked: 'Account bloccato',
-    mfa_invalid_otp: 'OTP non valido',
-    mfa_invalid_email_code: 'OTP email non valido',
   }
   const formatOutcome = (log: AccessLog) => {
     if (log.action === 'login_failed') {

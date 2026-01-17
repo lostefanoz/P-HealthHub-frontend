@@ -12,7 +12,6 @@ import { ThemeContextProvider } from './theme/ThemeContext'
 
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
-const MfaPage = lazy(() => import('./pages/MfaPage'))
 const DashboardLayout = lazy(() => import('./pages/DashboardLayout'))
 const AdminRolesPage = lazy(() => import('./pages/AdminRolesPage'))
 const AppointmentsPage = lazy(() => import('./pages/AppointmentsPage'))
@@ -134,7 +133,6 @@ export default function App() {
                 <Route path="/area-riservata" element={<AreaRiservataPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
-                <Route path="/mfa" element={<MfaPage />} />
                 <Route
                   path="/app"
                   element={
